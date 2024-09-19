@@ -1,8 +1,8 @@
 # Assignment 1: Performance Analysis on a Quad-Core CPU #
 
-**Due Fri Oct 6, 11:59pm**
+**So far, I only did program 1.**
 
-**100 points total + 6 points extra credit**
+**Below contents are for Stanford student, which I am not.**
 
 ## Overview ##
 
