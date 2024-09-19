@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <algorithm>
 #include <getopt.h>
-
+#include <vector>
 #include "CycleTimer.h"
+
+using std::vector;
 
 extern void mandelbrotSerial(
     float x0, float y0, float x1, float y1,
@@ -11,7 +13,7 @@ extern void mandelbrotSerial(
     int maxIterations,
     int output[]);
 
-extern void mandelbrotThread(
+extern vector<double> mandelbrotThread(
     int numThreads,
     float x0, float y0, float x1, float y1,
     int width, int height,
@@ -42,11 +44,13 @@ scaleAndShift(float& x0, float& x1, float& y0, float& y1,
 }
 
 void usage(const char* progname) {
+    
     printf("Usage: %s [options]\n", progname);
     printf("Program Options:\n");
     printf("  -t  --threads <N>  Use N threads\n");
     printf("  -v  --view <INT>   Use specified view settings\n");
     printf("  -?  --help         This message\n");
+
 }
 
 bool verifyResult (int *gold, int *result, int width, int height) {
@@ -78,7 +82,7 @@ int main(int argc, char** argv) {
     float y0 = -1;
     float y1 = 1;
 
-    // parse commandline options ////////////////////////////////////////////
+    // parse command line options
     int opt;
     static struct option long_options[] = {
         {"threads", 1, 0, 't'},
@@ -110,11 +114,13 @@ int main(int argc, char** argv) {
             }
             break;
         }
+            
         case '?':
         default:
             usage(argv[0]);
             return 1;
         }
+        
     }
     // end parsing of commandline options
 
@@ -129,7 +135,7 @@ int main(int argc, char** argv) {
 
     double minSerial = 1e30;
     for (int i = 0; i < 5; ++i) {
-       memset(output_serial, 0, width * height * sizeof(int));
+        memset(output_serial, 0, width * height * sizeof(int));
         double startTime = CycleTimer::currentSeconds();
         mandelbrotSerial(x0, y0, x1, y1, width, height, 0, height, maxIterations, output_serial);
         double endTime = CycleTimer::currentSeconds();
@@ -145,11 +151,14 @@ int main(int argc, char** argv) {
 
     double minThread = 1e30;
     for (int i = 0; i < 5; ++i) {
-      memset(output_thread, 0, width * height * sizeof(int));
+        memset(output_thread, 0, width * height * sizeof(int));
         double startTime = CycleTimer::currentSeconds();
-        mandelbrotThread(numThreads, x0, y0, x1, y1, width, height, maxIterations, output_thread);
+        vector<double> && vec = mandelbrotThread(numThreads, x0, y0, x1, y1, width, height, maxIterations, output_thread);
         double endTime = CycleTimer::currentSeconds();
         minThread = std::min(minThread, endTime - startTime);
+        for(int j = 0; j < numThreads; ++j) {
+            printf("[mandelbrot thread %d]:\t\t[%.3f] ms\n", j, vec[j]);
+        }
     }
 
     printf("[mandelbrot thread]:\t\t[%.3f] ms\n", minThread * 1000);
